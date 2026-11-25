@@ -1,2 +1,37 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #1e1e20;
+  --color-ink-soft: #2a2a2d;
+  --color-brand: #ffb13b;
+  --color-brand-hover: #ffa21a;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: #fff;
+}
+
+/* Brief confirmations (e.g. "Saved") that fade away on their own */
+@keyframes fade-out-late {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

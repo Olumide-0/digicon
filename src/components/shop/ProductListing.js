@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { products, productCategories } from "@/data/products";
+import { productCategories } from "@/data/products";
 import ProductCard from "./ProductCard";
 import { ChevronDownIcon } from "../icons";
 import { Divider, FilterSection, Option, toggle } from "./filters";
 
-export default function ProductListing({ initialCategory = null, initialBrands = [] }) {
+export default function ProductListing({ products, initialCategory = null, initialBrands = [] }) {
   const [category, setCategory] = useState(initialCategory);
   const [brands, setBrands] = useState(initialBrands);
   const [colors, setColors] = useState([]);
@@ -17,7 +17,7 @@ export default function ProductListing({ initialCategory = null, initialBrands =
   // Only offer brands/colours that exist in the current category.
   const pool = useMemo(
     () => (category ? products.filter((p) => p.category === category) : products),
-    [category]
+    [category, products]
   );
   const brandOptions = useMemo(() => [...new Set(pool.map((p) => p.brand))].sort(), [pool]);
   const colorOptions = useMemo(() => [...new Set(pool.map((p) => p.color))].sort(), [pool]);

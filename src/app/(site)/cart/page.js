@@ -1,7 +1,8 @@
 import CartView from "@/components/cart/CartView";
+import { getProducts } from "@/lib/catalog/store";
 
 export const metadata = { title: "My Cart" };
 
-export default function CartPage() {
-  return <CartView />;
+export default async function CartPage() {
+  return <CartView products={await getProducts()} />;
 }

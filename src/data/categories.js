@@ -1,4 +1,6 @@
-// Mega-menu data for "Shop by Categories".
+// Starting menu for "Shop by Categories". It is copied into the category store
+// (.data/categories.json, src/lib/catalog/categories.js) the first time the site runs; after that
+// categories are managed from Admin → Products Mgt → Create New Category.
 // Each category has 3 columns; each column holds one or more groups.
 
 export const slugify = (s) =>
@@ -158,7 +160,7 @@ export const featuredCategories = [
 // Turns URL segments back into readable labels using the menu data,
 // e.g. ["phones-and-tablets","top-smartphones","smartphones"]
 //   -> ["Phones and Tablets","Top Smartphones","Smartphones"]
-export function resolveCategoryLabels(segments) {
+export function resolveCategoryLabels(segments, categories) {
   const humanize = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const [catSlug, groupSlug, itemSlug] = segments;
   const cat = categories.find((c) => slugify(c.name) === catSlug);

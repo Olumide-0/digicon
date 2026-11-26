@@ -12,7 +12,7 @@ import {
   verifyPassword,
 } from "@/lib/auth/users";
 import { sendPasswordResetEmail } from "@/lib/email";
-import { getAdmin, isAdmin } from "./auth";
+import { getAdmin, isAdmin, isTeamMember } from "./auth";
 import { saveAvatar } from "./avatars";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -31,9 +31,14 @@ export async function adminSignIn(_prev, formData) {
   const user = await findUserByEmail(values.email);
   // One message for unknown email, wrong password or a non-admin account,
   // so the form can't be used to find out who the admins are.
-  if (!user || !(await verifyPassword(password, user.passwordHash)) || !isAdmin(user)) {
+  if (!user || !(await verifyPassword(password, user.passwordHash)) || !isTeamMember(user)) {
     return { errors: { form: "Incorrect email address or password" }, values };
   }
+  // Right password, but a Super Admin has turned this member's access off.
+  if (!isAdmin(user)) {
+    return { errors: { form: "Your admin access has been turned off. Ask a Super Admin to turn it back on." }, values };
+  }
+  await updateUser(user.id, { lastLoginAt: new Date().toISOString() });
 
   await createSession(user.id, remember);
   redirect("/admin");

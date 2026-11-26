@@ -29,7 +29,7 @@ function readSaved() {
   }
 }
 
-export default function CheckoutView({ account }) {
+export default function CheckoutView({ account, products }) {
   const { items } = useCart();
   const isClient = useIsClient();
   const [state, action, pending] = useActionState(placeOrder, undefined);
@@ -41,7 +41,7 @@ export default function CheckoutView({ account }) {
   const [discount, setDiscount] = useState(null);
   const [codeError, setCodeError] = useState("");
 
-  const lines = resolveLines(items);
+  const lines = resolveLines(items, products);
   const totals = computeTotals(lines, values.shipping, discount?.code);
 
   const clientErrors = validateDelivery(values);

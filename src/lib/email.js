@@ -19,3 +19,16 @@ export async function sendPasswordResetEmail(to, firstName, link) {
       `If you didn't ask to reset your password, you can ignore this email.\n\n— Digicon`,
   });
 }
+
+export async function sendTeamInviteEmail(to, firstName, roleName, inviterName, link) {
+  await sendEmail({
+    to,
+    subject: "You've been invited to the Digicon admin",
+    text:
+      `Hi${firstName ? ` ${firstName}` : ""},\n\n` +
+      `${inviterName} has invited you to join the Digicon team as ${roleName}. ` +
+      `Use the link below to set your password and get started:\n\n` +
+      `${link}\n\n` +
+      `This link expires in 7 days. If you weren't expecting this, you can ignore this email.\n\n— Digicon`,
+  });
+}

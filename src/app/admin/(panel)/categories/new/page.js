@@ -1,9 +1,10 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import ComingSoon from "@/components/admin/ComingSoon";
+import { getCategoryTree } from "@/lib/catalog/categories";
+import CategoryWizardPage from "@/components/admin/CategoryWizardPage";
 
-export const metadata = { title: "Add New Categories" };
+export const metadata = { title: "Create New Category" };
 
-export default async function Page() {
-  await requireAdmin();
-  return <ComingSoon title="Add New Categories" text="Adding categories is the next screen to build. Send the design and it will appear here." />;
+export default async function NewCategoryPage() {
+  await requireAdmin("products");
+  return <CategoryWizardPage tree={await getCategoryTree()} />;
 }

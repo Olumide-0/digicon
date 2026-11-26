@@ -1,8 +1,10 @@
 import { slugify } from "./categories";
 import { productDetails } from "./productDetails";
 
-// ⚠️ SAMPLE CATALOGUE for layout only — replace names, specs and prices with your real
-// inventory (or load them from your backend / CMS) before going live.
+// SAMPLE CATALOGUE. These 48 products are copied into the admin product store
+// (.data/catalog.json, see src/lib/catalog/store.js) the first time the site runs. After that the
+// store is what the shop shows, and products are managed from Admin → Products Mgt.
+// Editing this list later does NOT change an existing store.
 //
 // category: "Phones" | "Tablets" | "Accessories"
 // stock (optional): units available. ≤10 shows "N units left" in red; 0 = out of stock.
@@ -10,7 +12,7 @@ import { productDetails } from "./productDetails";
 //                  crossed-out old price are worked out below and used everywhere.
 // for / model (accessories): which device family it's for, and the model it's filtered
 //                  under on the Shop … Accessories pages (e.g. "AirPods Pro 2", "iPhone 15 series").
-const raw = [
+export const sampleProducts = [
   // iPhone
   { name: "iPhone 16 Pro Max", brand: "Apple", color: "Desert Titanium", category: "Phones", spec: "6.9″ Super Retina XDR • 256GB", price: 2150000, stock: 5, deal: 20, image: "/images/products/iphone-16-pro.png" },
   { name: "iPhone 16 Pro", brand: "Apple", color: "Desert Titanium", category: "Phones", spec: "6.3″ Super Retina XDR • 128GB", price: 1850000, deal: 20, image: "/images/products/iphone-16-pro.png" },
@@ -69,8 +71,7 @@ const raw = [
 
 // Card photos: the product's own photo first, then one photo per other colour
 // (shown as dots under the image on product cards, max 4).
-function cardImages(id, mainImage, mainColor) {
-  const variants = productDetails[id]?.variants ?? [];
+function cardImages(variants = [], mainImage, mainColor) {
   const others = variants.filter((v) => v.color !== mainColor).map((v) => ({ color: v.color, src: v.images[0] }));
   return [{ color: mainColor, src: mainImage }, ...others].slice(0, 4);
 }
@@ -95,8 +96,8 @@ const FAMILIES = [
 export const colorFamily = (name) => FAMILIES.find(([re]) => re.test(name))?.[1] ?? name;
 
 // "256GB / 512GB / 1TB, 8GB RAM" -> ["256GB", "512GB", "1TB"]
-function storageOptions(id) {
-  const internal = productDetails[id]?.specs?.Memory?.Internal;
+function storageOptions(specs) {
+  const internal = specs?.Memory?.Internal;
   if (typeof internal !== "string") return [];
   return internal
     .split(",")[0]
@@ -107,9 +108,14 @@ function storageOptions(id) {
 
 const roundTo = (n, step) => Math.round(n / step) * step;
 
-export const products = raw.map((p) => {
-  const id = slugify(p.name);
-  const colors = productDetails[id]?.variants?.map((v) => v.color) ?? [p.color];
+// Store record -> the product object the shop uses. detailsId points at the photos/specs in
+// productDetails (a duplicated product shares its original's until it gets its own).
+export function deriveProduct(p) {
+  const id = p.id ?? slugify(p.name);
+  const detailsId = p.detailsId ?? id;
+  // Products added in the admin carry their own photos/specs; the samples use productDetails.
+  const variants = p.variants ?? productDetails[detailsId]?.variants;
+  const colors = variants?.map((v) => v.color) ?? [p.color];
   // Product line for the brand shop pages (devices only — accessories use `for`).
   const line =
     p.category === "Accessories" ? null : /^iPhone/.test(p.name) ? "iPhone" : /^Pixel/.test(p.name) ? "Pixel" : /^iPad/.test(p.name) ? "iPad" : null;
@@ -118,13 +124,14 @@ export const products = raw.map((p) => {
     ...p,
     ...sale,
     id,
+    detailsId,
     line,
     colors,
     colorFamilies: [...new Set(colors.map(colorFamily))],
-    storage: storageOptions(id),
-    cardImages: cardImages(id, p.image, p.color),
+    storage: storageOptions(p.specs ?? productDetails[detailsId]?.specs),
+    cardImages: cardImages(variants, p.image, p.color),
   };
-});
+}
 
 export const productCategories = ["Phones", "Tablets", "Accessories"];
 

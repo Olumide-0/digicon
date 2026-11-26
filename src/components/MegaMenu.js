@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { categories, itemHref } from "@/data/categories";
+import { itemHref } from "@/data/categories";
 
 // Desktop "Shop by Categories" panel: orange category rail + white link panel.
-export default function MegaMenu({ onNavigate }) {
+export default function MegaMenu({ onNavigate, categories }) {
   const [active, setActive] = useState(0);
-  const category = categories[active];
+  const category = categories[active] ?? categories[0];
+  if (!category) return null;
 
   return (
     <div className="flex items-start gap-3">

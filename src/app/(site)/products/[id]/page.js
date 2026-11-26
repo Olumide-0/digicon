@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { products } from "@/data/products";
-import { productDetails } from "@/data/productDetails";
+import { getProduct, getProducts } from "@/lib/catalog/store";
+import { getAdmin } from "@/lib/admin/auth";
+import { productInfo } from "@/lib/catalog/info";
+import { slugify } from "@/data/categories";
 import ProductHero from "@/components/shop/ProductHero";
 import ProductSpecs from "@/components/shop/ProductSpecs";
 import ProductCard from "@/components/shop/ProductCard";
@@ -35,25 +37,28 @@ function Chevron() {
   );
 }
 
-const findProduct = (id) => products.find((p) => p.id === id);
-
-// Prerender every product page at build time.
-export function generateStaticParams() {
-  return products.map((p) => ({ id: p.id }));
-}
+// Drafts (e.g. a duplicated product not published yet) can be previewed by admins only.
+const findProduct = async (id) => (await getProduct(id)) ?? (await getProduct(id, { includeDrafts: Boolean(await getAdmin()) }));
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const p = findProduct(id);
+  const p = await findProduct(id);
   return p ? { title: p.name, description: `${p.name} — ${p.spec}` } : {};
 }
 
 export default async function ProductPage({ params }) {
   const { id } = await params;
-  const product = findProduct(id);
+  const product = await findProduct(id);
   if (!product) notFound();
 
-  const details = productDetails[id] ?? {};
+  // Products added in the admin carry their own photos, specs and description.
+  const details = productInfo(product);
+  // Breadcrumb: the admin-chosen category path, or the fixed trail for the sample catalogue.
+  const trail =
+    product.source === "admin" || !breadcrumbTrail[product.category]
+      ? (product.categoryPath ?? []).map((label, i, all) => ({ label, href: `/categories/${all.slice(0, i + 1).map(slugify).join("/")}` }))
+      : breadcrumbTrail[product.category];
+  const products = await getProducts();
   // Each colour has its own photos; fall back to the product's main photo.
   const variants = details.variants ?? [{ color: product.color, images: [product.image] }];
   const stock = stockLabel(product.stock, product.inStock);
@@ -69,7 +74,7 @@ export default async function ProductPage({ params }) {
     <div className="bg-white px-4 pt-6 pb-16 text-ink sm:px-8 sm:pt-10 lg:px-12 xl:px-16">
       <nav aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[10px] sm:gap-x-3 sm:text-xs">
-          {[{ label: "Home", href: "/" }, ...breadcrumbTrail[product.category]].map((c) => (
+          {[{ label: "Home", href: "/" }, ...trail].map((c) => (
             <li key={c.href} className="flex items-center gap-1.5 sm:gap-3">
               <Link href={c.href} className="text-brand hover:underline">
                 {c.label}
@@ -94,15 +99,17 @@ export default async function ProductPage({ params }) {
         stock={stock}
         available={available}
         maxQty={typeof product.stock === "number" ? Math.max(1, product.stock) : 10}
-        description={details.description ?? `${product.name} — ${product.spec}.`}
+        description={details.description || `${product.name} — ${product.spec}.`}
         variants={variants}
         initialColor={product.color}
       />
 
       {/* Specifications */}
-      <div className="mt-14">
-        <ProductSpecs specs={details.specs} />
-      </div>
+      {details.specs && Object.keys(details.specs).length > 0 && (
+        <div className="mt-14">
+          <ProductSpecs specs={details.specs} />
+        </div>
+      )}
 
       {/* Related */}
       <section aria-labelledby="related-title" className="mt-16">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { useCart } from "./CartProvider";
-import { products, formatNaira } from "@/data/products";
+import { formatNaira } from "@/data/products";
 import { productDetails } from "@/data/productDetails";
 import { DELIVERY_FEE } from "@/data/shipping";
 import ProductImage from "../ui/ProductImage";
@@ -103,13 +103,13 @@ function QtyStepper({ qty, onChange, label }) {
 // Phones: each row stacks into a compact card.
 const cols = "md:grid md:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center md:gap-4";
 
-function CartItems({ items }) {
+function CartItems({ items, products }) {
   const { setQty, removeItem } = useCart();
   const lines = items
     .map((it) => {
       const product = products.find((p) => p.id === it.id);
       if (!product) return null;
-      const variant = productDetails[it.id]?.variants?.find((v) => v.color === it.color);
+      const variant = (product.variants ?? productDetails[product.detailsId]?.variants)?.find((v) => v.color === it.color);
       return { ...it, product, image: variant?.images[0] ?? product.image };
     })
     .filter(Boolean);
@@ -198,7 +198,7 @@ function CartItems({ items }) {
   );
 }
 
-export default function CartView() {
+export default function CartView({ products }) {
   const { items } = useCart();
   const isClient = useIsClient();
   const lastViewedRaw = useSyncExternalStore(noopSubscribe, readLastViewed, () => null);
@@ -244,7 +244,7 @@ export default function CartView() {
       ) : items.length === 0 ? (
         <EmptyCart />
       ) : (
-        <CartItems items={items} />
+        <CartItems items={items} products={products} />
       )}
     </div>
   );

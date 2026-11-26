@@ -18,7 +18,12 @@ if (!user) {
   console.error(`No account uses ${email}. Sign up on the site first, then run this again.`);
   process.exit(1);
 }
-if (flag === "--remove") delete user.role;
-else user.role = "admin";
+if (flag === "--remove") {
+  for (const k of ["role", "teamRoleId", "teamStatus", "addedToTeamAt"]) delete user[k];
+} else {
+  // Full access (Super Admin). Other roles are given from Admin → Team Mgt.
+  Object.assign(user, { role: "admin", teamRoleId: "super-admin", teamStatus: "active" });
+  user.addedToTeamAt ??= new Date().toISOString();
+}
 await writeFile(file, JSON.stringify(users, null, 2));
-console.log(`${user.email} is ${flag === "--remove" ? "no longer an admin" : "now an admin"}.`);
+console.log(`${user.email} is ${flag === "--remove" ? "no longer an admin" : "now a Super Admin"}.`);

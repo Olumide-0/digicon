@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminResetPassword } from "@/lib/admin/actions";
+import { acceptInviteAction } from "@/lib/team/actions";
 import AdminModal, { ModalField, modalButton } from "./AdminModal";
 
 const BARS = 7;
@@ -31,9 +32,10 @@ function Strength({ score }) {
   );
 }
 
-export default function PasswordSetupModal({ token }) {
+// mode "reset": forgot-password link. mode "invite": a new team member setting their first password.
+export default function PasswordSetupModal({ token, mode = "reset", intro }) {
   const router = useRouter();
-  const [state, action, pending] = useActionState(adminResetPassword, undefined);
+  const [state, action, pending] = useActionState(mode === "invite" ? acceptInviteAction : adminResetPassword, undefined);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [touched, setTouched] = useState(false);
@@ -47,7 +49,7 @@ export default function PasswordSetupModal({ token }) {
       <input type="hidden" name="token" value={token} />
       <AdminModal
         title="Welcome ! Let's secure your account"
-        subtitle="First, create a strong password to protect your account"
+        subtitle={intro ?? "First, create a strong password to protect your account"}
         onClose={() => router.push("/admin/signin")}
         footer={
           <button type="submit" disabled={pending} className={modalButton}>

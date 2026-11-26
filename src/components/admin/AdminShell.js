@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { adminSignOut } from "@/lib/admin/actions";
 import { permissionFor } from "@/lib/team/permissions";
+import { rememberAdminReturn } from "./adminReturn";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: "grid" },
@@ -67,6 +68,14 @@ function Icon({ name, className = "size-4.5" }) {
           <path d="M2.5 17c0-1.8 1-3 2.5-3.3M21.5 17c0-1.8-1-3-2.5-3.3" />
         </svg>
       );
+    case "store":
+      return (
+        <svg {...p}>
+          <path d="M4 9.5 5.5 4.5h13L20 9.5" />
+          <path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0" />
+          <path d="M5.5 12.5v7h13v-7M10 19.5v-4h4v4" />
+        </svg>
+      );
     case "logout":
       return (
         <svg {...p}>
@@ -125,6 +134,19 @@ function Sidebar({ pathname, onNavigate, permissions = [] }) {
           })}
         </ul>
       </nav>
+      <div className="px-3 pb-3">
+        <Link
+          href="/"
+          onClick={() => {
+            rememberAdminReturn();
+            onNavigate?.();
+          }}
+          className="flex w-full items-center gap-3 rounded-md px-3.5 py-2 text-sm text-white/90 transition hover:bg-[#1c1c1e]"
+        >
+          <Icon name="store" />
+          Back to store
+        </Link>
+      </div>
       <form action={adminSignOut} className="border-t border-white/25 px-3 py-5">
         <button type="submit" className="flex w-full items-center gap-3 rounded-md px-3.5 py-2 text-sm text-white/90 transition hover:bg-[#1c1c1e]">
           <Icon name="logout" />

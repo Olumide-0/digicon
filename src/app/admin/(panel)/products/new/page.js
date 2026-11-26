@@ -1,9 +1,11 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import ComingSoon from "@/components/admin/ComingSoon";
+import { getCategoryTree } from "@/lib/catalog/categories";
+import { colourPresets } from "@/lib/catalog/colours";
+import ProductForm from "@/components/admin/ProductForm";
 
 export const metadata = { title: "Add New Product" };
 
-export default async function Page() {
-  await requireAdmin();
-  return <ComingSoon title="Add New Product" text="Adding products is the next screen to build. Send the design and it will appear here." />;
+export default async function AddProductPage() {
+  await requireAdmin("products");
+  return <ProductForm tree={await getCategoryTree()} presets={colourPresets()} />;
 }

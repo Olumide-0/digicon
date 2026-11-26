@@ -5,6 +5,7 @@ import { getSession } from "../auth/session";
 import { findUserById } from "../auth/users";
 import { validateDelivery } from "./validate";
 import { computeTotals, resolveLines } from "./pricing";
+import { getProducts } from "@/lib/catalog/store";
 import { saveOrder } from "./orders";
 
 const field = (formData, name) => String(formData.get(name) ?? "");
@@ -29,7 +30,7 @@ export async function placeOrder(_prev, formData) {
     /* treated as an empty cart below */
   }
   if (!Array.isArray(items) || items.length > 30) items = [];
-  const lines = resolveLines(items);
+  const lines = resolveLines(items, await getProducts());
   if (lines.length === 0) return { errors: { form: "Your cart is empty. Add something before paying." }, values };
   const soldOut = lines.find((l) => l.soldOut);
   if (soldOut) return { errors: { form: `${soldOut.name} is out of stock. Please remove it from your cart.` }, values };

@@ -5,8 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import MegaMenu from "./MegaMenu";
+import { AdminReturnBar } from "./admin/adminReturn";
 import { useCart } from "./cart/CartProvider";
-import { categories, itemHref } from "@/data/categories";
+import { itemHref } from "@/data/categories";
 import {
   BagIcon,
   ChevronDownIcon,
@@ -59,7 +60,7 @@ const helpLinks = [
 ];
 
 // Full-screen menu for phones/tablets.
-function MobileMenu({ onClose, account }) {
+function MobileMenu({ onClose, account, categories }) {
   const { count } = useCart();
 
   useEffect(() => {
@@ -192,7 +193,8 @@ function useCurrentUser() {
   return user;
 }
 
-export default function Navbar() {
+// categories: the shop menu from the category store (see src/lib/catalog/categories.js).
+export default function Navbar({ categories = [] }) {
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const headerRef = useRef(null);
@@ -219,6 +221,7 @@ export default function Navbar() {
 
   return (
     <header ref={headerRef} className="sticky top-0 z-40 bg-ink/95 backdrop-blur">
+      {user?.isAdmin && <AdminReturnBar />}
       <nav className="flex h-19 w-full items-center gap-6 px-4 sm:px-8 lg:px-12 xl:px-16">
         <Link href="/" className="text-xl font-bold tracking-tight">
           DIGICON
@@ -284,12 +287,12 @@ export default function Navbar() {
           id="mega-menu"
           className="absolute inset-x-0 top-full hidden px-4 pt-2 sm:px-8 lg:block lg:px-12 xl:px-16"
         >
-          <MegaMenu onNavigate={closeMega} />
+          <MegaMenu onNavigate={closeMega} categories={categories} />
         </div>
       )}
 
       {/* Portalled to <body>: the header's backdrop-blur would otherwise trap position:fixed */}
-      {mobileOpen && createPortal(<MobileMenu onClose={closeMobile} account={account} />, document.body)}
+      {mobileOpen && createPortal(<MobileMenu onClose={closeMobile} account={account} categories={categories} />, document.body)}
     </header>
   );
 }

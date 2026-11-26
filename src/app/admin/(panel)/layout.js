@@ -9,6 +9,8 @@ export default async function AdminPanelLayout({ children }) {
   const me = {
     name: `${admin.firstName} ${admin.lastName}`.trim(),
     avatarUrl: admin.avatar ? `/api/admin/avatar/${admin.id}?v=${admin.avatar.updatedAt}` : null,
+    role: admin.teamRole.name,
+    permissions: admin.permissions,
   };
   return (
     <AdminShell admin={me}>

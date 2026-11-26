@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { products, productCategories } from "@/data/products";
+import { productCategories } from "@/data/products";
 import { collections } from "@/data/collections";
 import ProductCard from "./ProductCard";
 import { ChevronDownIcon } from "../icons";
@@ -17,9 +17,9 @@ const COLOR_ORDER = ["Black", "White", "Starlight", "Blue", "Green", "Pink", "Pu
 const byOrder = (order) => (a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99);
 
 // Brand shop / deals page: sidebar filters + 3-column grid + page numbers.
-export default function CollectionListing({ collectionKey }) {
+export default function CollectionListing({ collectionKey, products }) {
   const config = collections[collectionKey];
-  const pool = useMemo(() => products.filter(config.match), [config]);
+  const pool = useMemo(() => products.filter(config.match), [config, products]);
 
   const [category, setCategory] = useState(null);
   const [colors, setColors] = useState([]);

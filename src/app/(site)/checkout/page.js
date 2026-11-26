@@ -3,6 +3,7 @@ import PageIntro from "@/components/ui/PageIntro";
 import CheckoutView from "@/components/checkout/CheckoutView";
 import { getSession } from "@/lib/auth/session";
 import { findUserById } from "@/lib/auth/users";
+import { getProducts } from "@/lib/catalog/store";
 
 export const metadata = { title: "Checkout" };
 
@@ -24,7 +25,7 @@ export default async function CheckoutPage() {
       >
         Enter your delivery details, choose how you&apos;d like to receive your order, and review everything before you pay.
       </PageIntro>
-      <CheckoutView account={{ firstName: user.firstName, lastName: user.lastName, phone: user.phone, address: user.address ?? null }} />
+      <CheckoutView account={{ firstName: user.firstName, lastName: user.lastName, phone: user.phone, address: user.address ?? null }} products={await getProducts()} />
     </div>
   );
 }

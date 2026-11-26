@@ -4,19 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { adminSignOut } from "@/lib/admin/actions";
+import { permissionFor } from "@/lib/team/permissions";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: "grid" },
   { href: "/admin/products", label: "Products Mgt", icon: "bag" },
   { href: "/admin/orders", label: "Orders", icon: "clipboard" },
+  { href: "/admin/inventory", label: "Inventory Mgt", icon: "invoice" },
   { href: "/admin/team", label: "Team Mgt", icon: "team" },
 ];
 // Top-bar title for each admin page (longest match wins).
 const TITLES = [
-  ["/admin/products/new", "Add New Product"],
+  ["/admin/products/new", "Product Management"],
   ["/admin/categories/new", "Add New Categories"],
-  ["/admin/products", "Products Management"],
+  ["/admin/products", "Product Management"],
   ["/admin/orders", "Orders"],
+  ["/admin/inventory", "Inventory Management"],
   ["/admin/team", "Team Management"],
   ["/admin", "Dashboard"],
 ];
@@ -45,6 +48,13 @@ function Icon({ name, className = "size-4.5" }) {
         <svg {...p}>
           <rect x="4.5" y="4.5" width="15" height="16" rx="3" />
           <path d="M9 3v3M15 3v3M8.5 11h7M8.5 15h4" />
+        </svg>
+      );
+    case "invoice":
+      return (
+        <svg {...p}>
+          <path d="M7 3.5h7l4.5 4.5v11A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5Z" />
+          <path d="M14 3.5V8h4.5M13.5 11.5h-2.2a1.3 1.3 0 0 0 0 2.6h1.4a1.3 1.3 0 0 1 0 2.6h-2.4M12 10.5v1M12 16.7v1" />
         </svg>
       );
     case "team":
@@ -86,7 +96,7 @@ export function AdminAvatar({ name, src, className = "size-8" }) {
   );
 }
 
-function Sidebar({ pathname, onNavigate }) {
+function Sidebar({ pathname, onNavigate, permissions = [] }) {
   const isActive = (href) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
   return (
     <div className="flex h-full flex-col bg-black text-white">
@@ -95,7 +105,7 @@ function Sidebar({ pathname, onNavigate }) {
       </Link>
       <nav aria-label="Admin" className="flex-1 px-3">
         <ul className="space-y-3">
-          {NAV.map((item) => {
+          {NAV.filter((item) => !permissionFor(item.href) || permissions.includes(permissionFor(item.href))).map((item) => {
             const active = isActive(item.href);
             return (
               <li key={item.href}>
@@ -150,20 +160,24 @@ export default function AdminShell({ admin, children }) {
   return (
     <div className="flex min-h-screen flex-1 bg-white text-ink">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 lg:block">
-        <Sidebar pathname={pathname} />
+        <Sidebar pathname={pathname} permissions={admin.permissions} />
       </aside>
 
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="absolute inset-0 bg-black/50" />
           <aside className="absolute inset-y-0 left-0 w-64 max-w-[80%] shadow-2xl">
-            <Sidebar pathname={pathname} onNavigate={() => setOpen(false)} />
+            <Sidebar pathname={pathname} onNavigate={() => setOpen(false)} permissions={admin.permissions} />
           </aside>
         </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col lg:ml-56">
-        <header className="flex h-16 items-center justify-between gap-4 bg-[#f4f4f6] px-4 sm:px-6 lg:px-9">
+        <header
+          className={`flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-9 ${
+            pathname === "/admin" ? "bg-[#f4f4f6]" : "border-b border-neutral-200 bg-white"
+          }`}
+        >
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open} className="-ml-1 p-1 lg:hidden">
               <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
@@ -177,7 +191,7 @@ export default function AdminShell({ admin, children }) {
             <AdminAvatar name={admin.name} src={admin.avatarUrl} />
           </div>
         </header>
-        <div className="flex flex-1 flex-col">{children}</div>
+        <div className="flex flex-1 flex-col *:min-w-0">{children}</div>
       </div>
     </div>
   );

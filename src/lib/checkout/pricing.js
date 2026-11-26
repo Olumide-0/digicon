@@ -1,22 +1,21 @@
 // Cart -> priced lines and totals. Used by the checkout page to DISPLAY the order and by the
 // server to CALCULATE it for real: prices always come from the catalogue, never from the browser.
-import { products } from "@/data/products";
 import { productDetails } from "@/data/productDetails";
 import { shippingMethods } from "@/data/shipping";
 import { findDiscount } from "@/data/discounts";
 
 export const MAX_QTY = 10;
 
-// items: [{ id, color, qty }]. Unknown products are dropped; quantities are clamped to 1..MAX_QTY
+// items: [{ id, color, qty }]; products: the live catalogue (getProducts()). Unknown products are dropped; quantities are clamped to 1..MAX_QTY
 // (and to the units in stock when the product has a stock number).
-export function resolveLines(items) {
+export function resolveLines(items, products) {
   const lines = [];
   for (const it of Array.isArray(items) ? items : []) {
     const product = products.find((p) => p.id === it?.id);
     if (!product) continue;
     const limit = typeof product.stock === "number" ? Math.max(0, Math.min(MAX_QTY, product.stock)) : MAX_QTY;
     const qty = Math.max(1, Math.min(limit || 1, Math.floor(Number(it.qty)) || 1));
-    const variant = productDetails[product.id]?.variants?.find((v) => v.color === it.color);
+    const variant = (product.variants ?? productDetails[product.detailsId]?.variants)?.find((v) => v.color === it.color);
     lines.push({
       id: product.id,
       name: product.name,
